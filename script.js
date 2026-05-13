@@ -251,8 +251,8 @@ function logout(){
   showHome();
 }
 
-function login(event){
- async function login(event){
+
+async function login(event){
 
   event.preventDefault();
 
