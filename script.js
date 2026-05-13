@@ -252,35 +252,37 @@ function logout(){
 }
 
 function login(event){
+ async function login(event){
+
   event.preventDefault();
 
-  const email = document.getElementById("email").value.trim().toLowerCase();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  const message = document.getElementById("message");
 
-  if(!users[email]){
-    message.className="message error";
-    message.innerHTML="Correo no registrado.";
+  const { data, error } = await supabaseClient
+    .from("users")
+    .select("*")
+    .eq("correo", email)
+    .eq("password", password)
+    .single();
+
+  if(error || !data){
+    alert("Credenciales incorrectas.");
     return;
   }
 
-  if(users[email].password !== password){
-    message.className="message error";
-    message.innerHTML="Contraseña incorrecta.";
-    return;
-  }
+  currentUser = {
+    name:data.nombre,
+    average:data.promedio,
+    semester:data.semestre,
+    credits:data.creditos,
+    career:"Estudiante",
+    careerKey:"sistemas",
+    role:"student",
+    history:[]
+  };
 
-  currentUser = users[email];
-  currentUser.email = email;
-
-  message.className="message success";
-  message.innerHTML="Inicio de sesión exitoso.";
-
-  setTimeout(()=>{
-    if(currentUser.role === "student") openStudentDashboard();
-    if(currentUser.role === "professor") openProfessorDashboard();
-    if(currentUser.role === "coordinator") openCoordinatorDashboard();
-  },700);
+  openStudentDashboard();
 }
 
 function getStatusClass(status){
@@ -576,8 +578,9 @@ async function registerUser(){
   const semester = document.getElementById("registerSemester").value.trim();
   const average = document.getElementById("registerAverage").value.trim();
   const password = document.getElementById("registerPassword").value.trim();
+  const credits = document.getElementById("registerCredits").value.trim();
 
-  if(!name || !email || !cedula || !semester || !average || !password){
+  if(!name || !email || !cedula || !semester || !average || !credits || !password){
     alert("Completa todos los campos.");
     return;
   }
@@ -591,6 +594,7 @@ async function registerUser(){
         cedula:cedula,
         semestre:semester,
         promedio:average,
+        creditos:credits,
         password:password
       }
     ]);
