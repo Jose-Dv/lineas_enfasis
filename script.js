@@ -519,7 +519,47 @@ function openContactForm(){
     <button onclick="closeModal()" style="background:#e5e7eb;color:#111;margin-left:8px;">Cancelar</button>
   `;
 }
+function openRegister(){
+  const modal = document.getElementById("aiModal");
+  const content = document.getElementById("modalContent");
 
+  modal.style.display = "flex";
+
+  content.innerHTML = `
+    <h2>Registro de usuario</h2>
+    <p>Completa los datos para solicitar una cuenta institucional.</p>
+
+    <div class="form-group" style="text-align:left; margin-top:20px;">
+      <label>Nombre completo</label>
+      <input placeholder="Tu nombre completo">
+    </div>
+
+    <div class="form-group" style="text-align:left;">
+      <label>Correo</label>
+      <input placeholder="correo@soyudemedellin.edu.co">
+    </div>
+
+    <div class="form-group" style="text-align:left;">
+      <label>Carrera</label>
+      <input placeholder="Tu carrera">
+    </div>
+
+    <button onclick="registerSuccess()">Enviar solicitud</button>
+    <button onclick="closeModal()" style="background:#e5e7eb;color:#111;margin-left:8px;">
+      Cancelar
+    </button>
+  `;
+}
+function registerSuccess(){
+  const content = document.getElementById("modalContent");
+
+  content.innerHTML = `
+    <div class="result-icon success-icon">✔</div>
+    <h2>Solicitud enviada</h2>
+    <p>Tu solicitud de registro fue enviada correctamente.</p>
+    <button onclick="closeModal()">Cerrar</button>
+  `;
+}
 function sendCoordinatorMessage(){
   const email = document.getElementById("contactEmail").value.trim();
   const subject = document.getElementById("contactSubject").value.trim();
