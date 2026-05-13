@@ -604,7 +604,8 @@ async function registerUser(){
 
   if(error){
     alert("Error al registrar.");
-    console.log(error);
+    console.error(error);
+    alert(error.message);
     return;
   }
 
