@@ -438,15 +438,18 @@
   <div class="modal-content" id="modalContent"></div>
 </div>
 <script src="script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-const supabaseUrl = "TU_URL";
-const supabaseKey = "TU_KEY";
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-const supabaseClient = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+<script>
+  const supabaseUrl = "https://aheliwdjayivxxkijslk.supabase.co/rest/v1/";
+  const supabaseKey = "sb_publishable_C3j6BeolYGSj-hOWcADS8A_M1-fS27n";
+
+  const supabaseClient = supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
 </script>
+
+<script src="js/app.js"></script>
 </body>
 </html>
