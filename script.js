@@ -1,4 +1,3 @@
-
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "brandNavy": "#0B2638",
   "brandGold": "#F3D941",
@@ -212,7 +211,7 @@ function renderHomeCards(career){
   homeCards[career].forEach(card=>{
     cardsContainer.innerHTML += `
       <article class="card">
-        <img src="${card[2]}">
+        <img src="${card[2]}" alt="Ícono de ${card[0]}">
         <h3>${card[0]}</h3>
         <p>${card[1]}</p>
         <a onclick="showLogin()">Ver más →</a>
@@ -580,11 +579,11 @@ function openRegister(){
           <div class="register-steps">
             <div class="register-step"><span>1</span>Datos personales</div>
             <div class="register-step"><span>2</span>Información académica</div>
-            <div class="register-step"><span>3</span>Acceso institucional</div>
+            <div class="register-step"><span>3</span>Activación por correo</div>
           </div>
         </div>
         <div class="register-help">
-          Usa tu correo institucional. Después del registro podrás iniciar sesión y revisar las líneas habilitadas para tu carrera.
+          No necesitas crear contraseña aquí. Al finalizar, recibirás un correo institucional para activar tu acceso de forma segura.
         </div>
       </aside>
 
@@ -592,7 +591,7 @@ function openRegister(){
         <div class="register-header">
           <div>
             <h3>Registro de estudiante</h3>
-            <p>Todos los campos son necesarios para crear tu perfil académico.</p>
+            <p>Completa tus datos académicos. La contraseña se configura desde el correo de activación.</p>
           </div>
           <button class="register-close" type="button" onclick="closeModal()" aria-label="Cerrar registro">×</button>
         </div>
@@ -637,11 +636,6 @@ function openRegister(){
             <label for="registerCredits">Créditos aprobados</label>
             <input id="registerCredits" type="number" min="0" placeholder="Ej: 84">
           </div>
-
-          <div class="form-group full">
-            <label for="registerPassword">Contraseña</label>
-            <input id="registerPassword" type="password" placeholder="Crear contraseña segura" autocomplete="new-password">
-          </div>
         </div>
 
         <div class="register-actions">
@@ -649,7 +643,7 @@ function openRegister(){
           <button class="register-secondary" type="button" onclick="closeModal()">Cancelar</button>
         </div>
 
-        <p class="register-legal">Al registrarte aceptas que tus datos académicos se usen únicamente para validar inscripción a líneas de énfasis.</p>
+        <p class="register-legal">Al registrarte aceptas que tus datos académicos se usen únicamente para validar inscripción a líneas de énfasis. La activación y configuración de contraseña se realiza por correo.</p>
       </div>
     </div>
   `;
@@ -669,17 +663,17 @@ async function registerUser(){
   const semester = document.getElementById("registerSemester").value.trim();
   const average = document.getElementById("registerAverage").value.trim();
   const credits = document.getElementById("registerCredits").value.trim();
-  const password = document.getElementById("registerPassword").value.trim();
+  const generatedPassword = `UdeM-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-  if(!name || !email || !cedula || !careerKey || !semester || !average || !credits || !password){
+  if(!name || !email || !cedula || !careerKey || !semester || !average || !credits){
     alert("Completa todos los campos.");
     return;
   }
 
-  // 1. Crear usuario en Auth
+  // 1. Crear usuario en Auth con contraseña temporal no visible para el estudiante.
   const { data, error } = await supabaseClient.auth.signUp({
     email,
-    password
+    password: generatedPassword
   });
 
   if(error){
@@ -701,8 +695,8 @@ async function registerUser(){
         promedio: average,
         creditos: credits,
         role: "student",
-        career: "Ingeniería de Sistemas",
-        career_key: "sistemas",
+        career: careerNames[careerKey],
+        career_key: careerKey,
         history: []
       }
     ]);
@@ -713,7 +707,15 @@ async function registerUser(){
     return;
   }
 
-  alert("Registro exitoso. Revisa tu correo.");
+  const { error: activationError } = await supabaseClient.auth.resetPasswordForEmail(email,{
+    redirectTo: window.location.origin + "/reset-password.html"
+  });
+
+  if(activationError){
+    console.error(activationError);
+  }
+
+  alert("Registro exitoso. Te enviamos un correo para activar tu acceso y crear tu contraseña.");
   closeModal();
 }
 function sendCoordinatorMessage(){
@@ -813,5 +815,8 @@ function finishProcess(){
 }
 
 function closeModal(){
-  document.getElementById("aiModal").style.display="none";
+  const modal = document.getElementById("aiModal");
+  const content = document.getElementById("modalContent");
+  modal.style.display="none";
+  content.classList.remove("register-modal");
 }
