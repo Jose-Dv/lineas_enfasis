@@ -268,21 +268,36 @@ async function login(event){
 
   if(error || !data){
     alert("Credenciales incorrectas.");
+    console.error(error);
     return;
   }
 
   currentUser = {
-    name:data.nombre,
-    average:data.promedio,
-    semester:data.semestre,
-    credits:data.creditos,
-    career:"Estudiante",
-    careerKey:"sistemas",
-    role:"student",
-    history:[]
+    name: data.nombre,
+    average: data.promedio,
+    semester: data.semestre,
+    credits: data.creditos,
+    career: data.career,
+    careerKey: data.career_key,
+    role: data.role,
+    history: data.history || []
   };
 
-  openStudentDashboard();
+  if(data.role === "student"){
+    openStudentDashboard();
+  }
+
+  else if(data.role === "professor"){
+    openProfessorDashboard();
+  }
+
+  else if(data.role === "coordinator"){
+    openCoordinatorDashboard();
+  }
+
+  else{
+    alert("Rol inválido.");
+  }
 }
 
 function getStatusClass(status){
@@ -599,6 +614,9 @@ async function registerUser(){
         promedio:average,
         creditos:credits,
         password:password
+        role:"student",
+        career:"Ingeniería de Sistemas",
+        career_key:"sistemas"
       }
     ]);
 
