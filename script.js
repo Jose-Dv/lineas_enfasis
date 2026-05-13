@@ -568,51 +568,90 @@ function openRegister(){
   const content = document.getElementById("modalContent");
 
   modal.style.display = "flex";
+  content.classList.add("register-modal");
 
   content.innerHTML = `
-    <h2>Registro de estudiante</h2>
-    <p>Completa el formulario para crear tu cuenta.</p>
+    <div class="register-shell">
+      <aside class="register-aside" aria-label="Beneficios del registro">
+        <div>
+          <span class="register-kicker">Registro académico</span>
+          <h2>Crea tu cuenta y activa tus líneas de énfasis.</h2>
+          <p>Completa tus datos principales en un solo paso. La plataforma usará esta información para validar requisitos, cupos y rutas disponibles.</p>
+          <div class="register-steps">
+            <div class="register-step"><span>1</span>Datos personales</div>
+            <div class="register-step"><span>2</span>Información académica</div>
+            <div class="register-step"><span>3</span>Acceso institucional</div>
+          </div>
+        </div>
+        <div class="register-help">
+          Usa tu correo institucional. Después del registro podrás iniciar sesión y revisar las líneas habilitadas para tu carrera.
+        </div>
+      </aside>
 
-    <div class="form-group" style="text-align:left; margin-top:20px;">
-      <label>Nombre completo</label>
-      <input id="registerName" placeholder="Nombre completo">
-    </div>
+      <div class="register-form">
+        <div class="register-header">
+          <div>
+            <h3>Registro de estudiante</h3>
+            <p>Todos los campos son necesarios para crear tu perfil académico.</p>
+          </div>
+          <button class="register-close" type="button" onclick="closeModal()" aria-label="Cerrar registro">×</button>
+        </div>
 
-    <div class="form-group" style="text-align:left;">
-      <label>Correo institucional</label>
-      <input id="registerEmail" type="email" placeholder="correo@soyudemedellin.edu.co">
-    </div>
+        <div class="register-grid">
+          <div class="form-group full">
+            <label for="registerName">Nombre completo</label>
+            <input id="registerName" placeholder="Ej: Mariana Restrepo Gómez" autocomplete="name">
+          </div>
 
-    <div class="form-group" style="text-align:left;">
-      <label>Número de cédula</label>
-      <input id="registerCedula" type="number" placeholder="123456789">
-    </div>
+          <div class="form-group">
+            <label for="registerEmail">Correo institucional</label>
+            <input id="registerEmail" type="email" placeholder="correo@soyudemedellin.edu.co" autocomplete="email">
+          </div>
 
-    <div class="form-group" style="text-align:left;">
-      <label>Semestre</label>
-      <input id="registerSemester" type="number" placeholder="Ej: 5">
-    </div>
+          <div class="form-group">
+            <label for="registerCedula">Número de cédula</label>
+            <input id="registerCedula" type="number" placeholder="Ej: 1037654321">
+          </div>
 
-    <div class="form-group" style="text-align:left;">
-      <label>Promedio</label>
-      <input id="registerAverage" type="number" step="0.1" placeholder="Ej: 4.2">
-    </div>
-    <div class="form-group" style="text-align:left;">
-      <label>Créditos aprobados</label>
-      <input id="registerCredits" type="number" placeholder="Ej: 84">
-    </div>
-    <div class="form-group" style="text-align:left;">
-      <label>Contraseña</label>
-      <input id="registerPassword" type="password" placeholder="Crear contraseña">
-    </div>
+          <div class="form-group">
+            <label for="registerCareer">Carrera</label>
+            <select id="registerCareer">
+              <option value="sistemas">Ingeniería de Sistemas</option>
+              <option value="industrial">Ingeniería Industrial</option>
+              <option value="administracion">Administración de Empresas</option>
+              <option value="comunicacion">Comunicación Digital</option>
+            </select>
+          </div>
 
-    <button onclick="registerUser()">Registrarme</button>
+          <div class="form-group">
+            <label for="registerSemester">Semestre</label>
+            <input id="registerSemester" type="number" min="1" max="12" placeholder="Ej: 5">
+          </div>
 
-    <button 
-      onclick="closeModal()" 
-      style="background:#e5e7eb;color:#111;margin-left:8px;">
-      Cancelar
-    </button>
+          <div class="form-group">
+            <label for="registerAverage">Promedio acumulado</label>
+            <input id="registerAverage" type="number" min="0" max="5" step="0.1" placeholder="Ej: 4.2">
+          </div>
+
+          <div class="form-group">
+            <label for="registerCredits">Créditos aprobados</label>
+            <input id="registerCredits" type="number" min="0" placeholder="Ej: 84">
+          </div>
+
+          <div class="form-group full">
+            <label for="registerPassword">Contraseña</label>
+            <input id="registerPassword" type="password" placeholder="Crear contraseña segura" autocomplete="new-password">
+          </div>
+        </div>
+
+        <div class="register-actions">
+          <button class="register-primary" type="button" onclick="registerUser()">Crear cuenta</button>
+          <button class="register-secondary" type="button" onclick="closeModal()">Cancelar</button>
+        </div>
+
+        <p class="register-legal">Al registrarte aceptas que tus datos académicos se usen únicamente para validar inscripción a líneas de énfasis.</p>
+      </div>
+    </div>
   `;
 }
 async function registerUser(){
@@ -620,12 +659,19 @@ async function registerUser(){
   const name = document.getElementById("registerName").value.trim();
   const email = document.getElementById("registerEmail").value.trim();
   const cedula = document.getElementById("registerCedula").value.trim();
+  const careerKey = document.getElementById("registerCareer").value;
+  const careerNames = {
+    sistemas: "Ingeniería de Sistemas",
+    industrial: "Ingeniería Industrial",
+    administracion: "Administración de Empresas",
+    comunicacion: "Comunicación Digital"
+  };
   const semester = document.getElementById("registerSemester").value.trim();
   const average = document.getElementById("registerAverage").value.trim();
   const credits = document.getElementById("registerCredits").value.trim();
   const password = document.getElementById("registerPassword").value.trim();
 
-  if(!name || !email || !cedula || !semester || !average || !credits || !password){
+  if(!name || !email || !cedula || !careerKey || !semester || !average || !credits || !password){
     alert("Completa todos los campos.");
     return;
   }
