@@ -414,12 +414,18 @@ footer{
 
 .cert{
   background:#f3f3f3;
-  color:#111;
-  padding:18px;
-  border-radius:6px;
-  font-size:13px;
-  font-weight:700;
-  text-align:center;
+  padding:10px;
+  border-radius:10px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.cert img{
+  width:100%;
+  max-width:320px;
+  height:auto;
+  object-fit:contain;
 }
 
 .copy{
