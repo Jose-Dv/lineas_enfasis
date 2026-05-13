@@ -555,7 +555,10 @@ function openRegister(){
       <label>Promedio</label>
       <input id="registerAverage" type="number" step="0.1" placeholder="Ej: 4.2">
     </div>
-
+    <div class="form-group" style="text-align:left;">
+      <label>Créditos aprobados</label>
+      <input id="registerCredits" type="number" placeholder="Ej: 84">
+    </div>
     <div class="form-group" style="text-align:left;">
       <label>Contraseña</label>
       <input id="registerPassword" type="password" placeholder="Crear contraseña">
