@@ -159,7 +159,7 @@ let coordinatorMessages = [
   }
 ];
 
-const users = {
+let users = JSON.parse(localStorage.getItem("users")) || {
   "sistemas@soyudemedellin.edu.co":{
     password:"123", role:"student", name:"Andrés Correa", career:"Ingeniería de Sistemas", careerKey:"sistemas", average:4.6, credits:94, semester:6,
     history:[["I","Programación I","4.8","4"],["II","Programación II","4.5","4"],["III","Bases de Datos","4.7","3"],["IV","Estructura de Datos","4.3","4"]]
@@ -526,37 +526,88 @@ function openRegister(){
   modal.style.display = "flex";
 
   content.innerHTML = `
-    <h2>Registro de usuario</h2>
-    <p>Completa los datos para solicitar una cuenta institucional.</p>
+    <h2>Registro de estudiante</h2>
+    <p>Completa el formulario para crear tu cuenta.</p>
 
     <div class="form-group" style="text-align:left; margin-top:20px;">
       <label>Nombre completo</label>
-      <input placeholder="Tu nombre completo">
+      <input id="registerName" placeholder="Nombre completo">
     </div>
 
     <div class="form-group" style="text-align:left;">
-      <label>Correo</label>
-      <input placeholder="correo@soyudemedellin.edu.co">
+      <label>Correo institucional</label>
+      <input id="registerEmail" type="email" placeholder="correo@soyudemedellin.edu.co">
     </div>
 
     <div class="form-group" style="text-align:left;">
-      <label>Carrera</label>
-      <input placeholder="Tu carrera">
+      <label>Número de cédula</label>
+      <input id="registerCedula" type="number" placeholder="123456789">
     </div>
 
-    <button onclick="registerSuccess()">Enviar solicitud</button>
-    <button onclick="closeModal()" style="background:#e5e7eb;color:#111;margin-left:8px;">
+    <div class="form-group" style="text-align:left;">
+      <label>Semestre</label>
+      <input id="registerSemester" type="number" placeholder="Ej: 5">
+    </div>
+
+    <div class="form-group" style="text-align:left;">
+      <label>Promedio</label>
+      <input id="registerAverage" type="number" step="0.1" placeholder="Ej: 4.2">
+    </div>
+
+    <div class="form-group" style="text-align:left;">
+      <label>Contraseña</label>
+      <input id="registerPassword" type="password" placeholder="Crear contraseña">
+    </div>
+
+    <button onclick="registerUser()">Registrarme</button>
+
+    <button 
+      onclick="closeModal()" 
+      style="background:#e5e7eb;color:#111;margin-left:8px;">
       Cancelar
     </button>
   `;
 }
-function registerSuccess(){
+function registerUser(){
+
+  const name = document.getElementById("registerName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim().toLowerCase();
+  const cedula = document.getElementById("registerCedula").value.trim();
+  const semester = document.getElementById("registerSemester").value.trim();
+  const average = document.getElementById("registerAverage").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+
+  if(!name || !email || !cedula || !semester || !average || !password){
+    alert("Completa todos los campos.");
+    return;
+  }
+
+  if(users[email]){
+    alert("Ese correo ya está registrado.");
+    return;
+  }
+
+  users[email] = {
+    password: password,
+    role: "student",
+    name: name,
+    career: "Pendiente",
+    careerKey: "sistemas",
+    average: average,
+    credits: 0,
+    semester: semester,
+    cedula: cedula,
+    history: []
+  };
+
+  localStorage.setItem("users", JSON.stringify(users));
+
   const content = document.getElementById("modalContent");
 
   content.innerHTML = `
     <div class="result-icon success-icon">✔</div>
-    <h2>Solicitud enviada</h2>
-    <p>Tu solicitud de registro fue enviada correctamente.</p>
+    <h2>Registro exitoso</h2>
+    <p>Tu cuenta fue creada correctamente.</p>
     <button onclick="closeModal()">Cerrar</button>
   `;
 }
