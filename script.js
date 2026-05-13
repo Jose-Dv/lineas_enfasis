@@ -1,4 +1,14 @@
-import logoUdem from "../assets/logo-udem.png";
+import logo from "../assets/logo.png";
+
+function Navbar() {
+  return (
+    <img
+      src={logo}
+      alt="Universidad de Medellín"
+      className="h-14 w-auto"
+    />
+  );
+}
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "brandNavy": "#0B2638",
   "brandGold": "#F3D941",
@@ -95,13 +105,4 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-<img
-  src={logoUdem}
-  alt="Universidad de Medellín"
-  className="h-14 w-auto object-contain"
-/>
-<img
-  src={logoUdem}
-  alt="Universidad de Medellín"
-  className="h-12 md:h-14 w-auto object-contain"
-/>
+
