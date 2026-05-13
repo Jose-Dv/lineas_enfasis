@@ -259,15 +259,28 @@ async function login(event){
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
+  // Login con Supabase Auth
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if(authError){
+    alert("Correo o contraseña incorrectos.");
+    console.error(authError);
+    return;
+  }
+
+  // Buscar perfil académico
   const { data, error } = await supabaseClient
     .from("users")
     .select("*")
-    .eq("correo", email)
-    .eq("password", password)
+    .eq("auth_id", authData.user.id)
     .single();
 
   if(error || !data){
-    alert("Credenciales incorrectas.");
+    alert("No se encontró el perfil.");
     console.error(error);
     return;
   }
@@ -294,12 +307,7 @@ async function login(event){
   else if(data.role === "coordinator"){
     openCoordinatorDashboard();
   }
-
-  else{
-    alert("Rol inválido.");
-  }
 }
-
 function getStatusClass(status){
   if(status === "Lleno") return "full";
   if(status === "Restringido") return "restricted";
