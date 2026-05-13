@@ -313,7 +313,26 @@ function getStatusClass(status){
   if(status === "Restringido") return "restricted";
   return "available";
 }
+async function forgotPassword(){
 
+  const email = prompt("Ingresa tu correo institucional");
+
+  if(!email) return;
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(email,{
+      redirectTo:
+        window.location.origin + "/reset-password.html"
+    });
+
+  if(error){
+    alert(error.message);
+    console.error(error);
+    return;
+  }
+
+  alert("Te enviamos un correo para recuperar tu contraseña.");
+}
 function openStudentDashboard(){
   hideAll();
   document.getElementById("studentDashboard").style.display="block";
