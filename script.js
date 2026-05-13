@@ -568,10 +568,10 @@ function openRegister(){
     </button>
   `;
 }
-function registerUser(){
+async function registerUser(){
 
   const name = document.getElementById("registerName").value.trim();
-  const email = document.getElementById("registerEmail").value.trim().toLowerCase();
+  const email = document.getElementById("registerEmail").value.trim();
   const cedula = document.getElementById("registerCedula").value.trim();
   const semester = document.getElementById("registerSemester").value.trim();
   const average = document.getElementById("registerAverage").value.trim();
@@ -582,34 +582,27 @@ function registerUser(){
     return;
   }
 
-  if(users[email]){
-    alert("Ese correo ya está registrado.");
+  const { error } = await supabaseClient
+    .from("users")
+    .insert([
+      {
+        nombre:name,
+        correo:email,
+        cedula:cedula,
+        semestre:semester,
+        promedio:average,
+        password:password
+      }
+    ]);
+
+  if(error){
+    alert("Error al registrar.");
+    console.log(error);
     return;
   }
 
-  users[email] = {
-    password: password,
-    role: "student",
-    name: name,
-    career: "Pendiente",
-    careerKey: "sistemas",
-    average: average,
-    credits: 0,
-    semester: semester,
-    cedula: cedula,
-    history: []
-  };
-
-  localStorage.setItem("users", JSON.stringify(users));
-
-  const content = document.getElementById("modalContent");
-
-  content.innerHTML = `
-    <div class="result-icon success-icon">✔</div>
-    <h2>Registro exitoso</h2>
-    <p>Tu cuenta fue creada correctamente.</p>
-    <button onclick="closeModal()">Cerrar</button>
-  `;
+  alert("Registro exitoso.");
+  closeModal();
 }
 function sendCoordinatorMessage(){
   const email = document.getElementById("contactEmail").value.trim();
