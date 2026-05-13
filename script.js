@@ -613,7 +613,7 @@ async function registerUser(){
         semestre:semester,
         promedio:average,
         creditos:credits,
-        password:password
+        password:password,
         role:"student",
         career:"Ingeniería de Sistemas",
         career_key:"sistemas"
