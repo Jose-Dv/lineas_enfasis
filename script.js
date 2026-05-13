@@ -595,39 +595,52 @@ async function registerUser(){
   const cedula = document.getElementById("registerCedula").value.trim();
   const semester = document.getElementById("registerSemester").value.trim();
   const average = document.getElementById("registerAverage").value.trim();
-  const password = document.getElementById("registerPassword").value.trim();
   const credits = document.getElementById("registerCredits").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
 
   if(!name || !email || !cedula || !semester || !average || !credits || !password){
     alert("Completa todos los campos.");
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("users")
-    .insert([
-      {
-        nombre:name,
-        correo:email,
-        cedula:cedula,
-        semestre:semester,
-        promedio:average,
-        creditos:credits,
-        password:password,
-        role:"student",
-        career:"Ingeniería de Sistemas",
-        career_key:"sistemas"
-      }
-    ]);
+  // 1. Crear usuario en Auth
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
 
   if(error){
-    alert("Error al registrar.");
-    console.error(error);
     alert(error.message);
+    console.error(error);
     return;
   }
 
-  alert("Registro exitoso.");
+  // 2. Guardar perfil académico
+  const { error: profileError } = await supabaseClient
+    .from("users")
+    .insert([
+      {
+        auth_id: data.user.id,
+        nombre: name,
+        correo: email,
+        cedula: cedula,
+        semestre: semester,
+        promedio: average,
+        creditos: credits,
+        role: "student",
+        career: "Ingeniería de Sistemas",
+        career_key: "sistemas",
+        history: []
+      }
+    ]);
+
+  if(profileError){
+    alert(profileError.message);
+    console.error(profileError);
+    return;
+  }
+
+  alert("Registro exitoso. Revisa tu correo.");
   closeModal();
 }
 function sendCoordinatorMessage(){
