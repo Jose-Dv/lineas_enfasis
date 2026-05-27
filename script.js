@@ -239,17 +239,23 @@ async function login(event){
   }
 
   // Buscar perfil académico
-  const { data, error } = await supabaseClient
+  console.log("[login] buscando perfil para auth_id:", authData.user.id);
+  const { data: rows, error } = await supabaseClient
     .from("users")
     .select("*")
     .eq("auth_id", authData.user.id)
-    .single();
+    .order("id", { ascending: false })
+    .limit(1);
 
-  if(error || !data){
-    alert("No se encontró el perfil.");
-    console.error(error);
+  console.log("[login] resultado:", rows, "error:", error);
+
+  if(error || !rows || rows.length === 0){
+    alert("No se encontró el perfil. Verifica las políticas RLS de Supabase o contacta al administrador.");
+    console.error("[login] perfil no encontrado. error:", error, "rows:", rows);
     return;
   }
+
+  const data = rows[0];
 
   // Si es estudiante y necesita actualizar info académica (inicio de semestre o primera vez)
   if(data.role === "student" && needsAcademicUpdate(data)){
@@ -625,32 +631,33 @@ async function registerUser(){
     alert("Completa todos los campos.");
     return;
   }
-
   if(password.length < 8){
     alert("La contraseña debe tener al menos 8 caracteres.");
     return;
   }
 
-  const btnRegistrar = document.querySelector(".register-primary");
-  if(btnRegistrar) { btnRegistrar.disabled = true; btnRegistrar.textContent = "Creando cuenta..."; }
+  const btn = document.querySelector(".register-primary");
+  const resetBtn = () => { if(btn){ btn.disabled = false; btn.textContent = "Crear cuenta"; } };
+  if(btn){ btn.disabled = true; btn.textContent = "Creando cuenta..."; }
 
   // 1. Crear usuario en Supabase Auth
-  // Con "Confirm email" desactivado en Supabase, signUp devuelve
-  // la sesión activa inmediatamente y podemos hacer el INSERT directo.
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  console.log("[registro] llamando signUp...");
+  const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email, password });
 
-  if(error){
-    alert(error.message);
-    console.error(error);
-    if(btnRegistrar) { btnRegistrar.disabled = false; btnRegistrar.textContent = "Crear cuenta"; }
-    return;
+  if(authError){
+    console.error("[registro] error en signUp:", authError);
+    alert(authError.message);
+    return resetBtn();
   }
 
-  // 2. Insertar perfil básico — la sesión ya está activa, RLS lo permite
+  console.log("[registro] signUp OK, user id:", authData.user.id);
+
+  // 2. Insertar perfil en la tabla users
+  console.log("[registro] insertando perfil...");
   const { error: profileError } = await supabaseClient
     .from("users")
-    .insert([{
-      auth_id:                   data.user.id,
+    .insert({
+      auth_id:                   authData.user.id,
       nombre:                    name,
       correo:                    email,
       cedula:                    cedula,
@@ -662,22 +669,22 @@ async function registerUser(){
       career_key:                null,
       history:                   [],
       academic_updated_semester: null
-    }]);
+    });
 
   if(profileError){
-    console.error("Error al crear perfil:", profileError);
-    alert("Cuenta creada pero hubo un error al guardar el perfil: " + profileError.message);
-    return;
+    console.error("[registro] error al insertar perfil:", profileError);
+    alert("Error al guardar perfil: " + profileError.message);
+    return resetBtn();
   }
+
+  console.log("[registro] perfil guardado OK");
 
   // 3. Cerrar sesión para que el usuario haga login limpio
   await supabaseClient.auth.signOut();
-  localStorage.removeItem("pendingProfile");
 
-  const modalContent = document.getElementById("modalContent");
-  modalContent.innerHTML = `
+  document.getElementById("modalContent").innerHTML = `
     <div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:3rem;margin-bottom:16px;">&#10004;</div>
+      <div style="font-size:2.5rem;margin-bottom:16px;">&#10004;</div>
       <h2>¡Cuenta creada!</h2>
       <p style="margin:12px 0 20px;">Ya puedes iniciar sesión con tu correo y contraseña.</p>
       <button onclick="closeModal();showLogin()">Iniciar sesión</button>
