@@ -284,15 +284,34 @@ async function login(event){
     return;
   }
 
+  // Si es estudiante y necesita actualizar info académica (inicio de semestre o primera vez)
+  if(data.role === "student" && needsAcademicUpdate(data)){
+    openAcademicUpdateModal(data, (updated) => {
+      // Tras actualizar, construimos currentUser con los datos frescos y abrimos dashboard
+      currentUser = {
+        name:      data.nombre,
+        average:   parseFloat(updated.average),
+        semester:  parseInt(updated.semester),
+        credits:   parseInt(updated.credits),
+        career:    updated.career,
+        careerKey: updated.careerKey,
+        role:      "student",
+        history:   data.history || []
+      };
+      openStudentDashboard();
+    });
+    return;
+  }
+
   currentUser = {
-    name: data.nombre,
-    average: data.promedio,
-    semester: data.semestre,
-    credits: data.creditos,
-    career: data.career,
+    name:      data.nombre,
+    average:   data.promedio,
+    semester:  data.semestre,
+    credits:   data.creditos,
+    career:    data.career,
     careerKey: data.career_key,
-    role: data.role,
-    history: data.history || []
+    role:      data.role,
+    history:   data.history || []
   };
 
   if(data.role === "student"){
@@ -574,24 +593,24 @@ function openRegister(){
       <aside class="register-aside" aria-label="Beneficios del registro">
         <div>
           <span class="register-kicker">Registro académico</span>
-          <h2>Crea tu cuenta y activa tus líneas de énfasis.</h2>
-          <p>Completa tus datos principales en un solo paso. La plataforma usará esta información para validar requisitos, cupos y rutas disponibles.</p>
+          <h2>Crea tu cuenta en segundos.</h2>
+          <p>Solo necesitas tus datos básicos. Al inicio de cada semestre, la plataforma te pedirá actualizar tu información académica para validar acceso a las líneas de énfasis.</p>
           <div class="register-steps">
-            <div class="register-step"><span>1</span>Datos personales</div>
-            <div class="register-step"><span>2</span>Información académica</div>
-            <div class="register-step"><span>3</span>Activación por correo</div>
+            <div class="register-step"><span>1</span>Datos básicos</div>
+            <div class="register-step"><span>2</span>Verificación de correo</div>
+            <div class="register-step"><span>3</span>Info académica (cada semestre)</div>
           </div>
         </div>
         <div class="register-help">
-          No necesitas crear contraseña aquí. Al finalizar, recibirás un correo institucional para activar tu acceso de forma segura.
+          Cada semestre se te pedirá actualizar tu carrera, semestre, promedio y créditos para acceder a las líneas disponibles.
         </div>
       </aside>
 
       <div class="register-form">
         <div class="register-header">
           <div>
-            <h3>Registro de estudiante</h3>
-            <p>Completa tus datos académicos. La contraseña se configura desde el correo de activación.</p>
+            <h3>Crear cuenta</h3>
+            <p>Solo necesitas 4 datos para comenzar.</p>
           </div>
           <button class="register-close" type="button" onclick="closeModal()" aria-label="Cerrar registro">×</button>
         </div>
@@ -602,39 +621,19 @@ function openRegister(){
             <input id="registerName" placeholder="Ej: Mariana Restrepo Gómez" autocomplete="name">
           </div>
 
-          <div class="form-group">
+          <div class="form-group full">
             <label for="registerEmail">Correo institucional</label>
             <input id="registerEmail" type="email" placeholder="correo@soyudemedellin.edu.co" autocomplete="email">
           </div>
 
-          <div class="form-group">
+          <div class="form-group full">
             <label for="registerCedula">Número de cédula</label>
             <input id="registerCedula" type="number" placeholder="Ej: 1037654321">
           </div>
 
-          <div class="form-group">
-            <label for="registerCareer">Carrera</label>
-            <select id="registerCareer">
-              <option value="sistemas">Ingeniería de Sistemas</option>
-              <option value="industrial">Ingeniería Industrial</option>
-              <option value="administracion">Administración de Empresas</option>
-              <option value="comunicacion">Comunicación Digital</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="registerSemester">Semestre</label>
-            <input id="registerSemester" type="number" min="1" max="12" placeholder="Ej: 5">
-          </div>
-
-          <div class="form-group">
-            <label for="registerAverage">Promedio acumulado</label>
-            <input id="registerAverage" type="number" min="0" max="5" step="0.1" placeholder="Ej: 4.2">
-          </div>
-
-          <div class="form-group">
-            <label for="registerCredits">Créditos aprobados</label>
-            <input id="registerCredits" type="number" min="0" placeholder="Ej: 84">
+          <div class="form-group full">
+            <label for="registerPassword">Contraseña</label>
+            <input id="registerPassword" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
           </div>
         </div>
 
@@ -643,37 +642,32 @@ function openRegister(){
           <button class="register-secondary" type="button" onclick="closeModal()">Cancelar</button>
         </div>
 
-        <p class="register-legal">Al registrarte aceptas que tus datos académicos se usen únicamente para validar inscripción a líneas de énfasis. La activación y configuración de contraseña se realiza por correo.</p>
+        <p class="register-legal">Al registrarte aceptas que tus datos se usen para validar inscripción a líneas de énfasis. Cada semestre actualizarás tu información académica.</p>
       </div>
     </div>
   `;
 }
 async function registerUser(){
 
-  const name = document.getElementById("registerName").value.trim();
-  const email = document.getElementById("registerEmail").value.trim();
-  const cedula = document.getElementById("registerCedula").value.trim();
-  const careerKey = document.getElementById("registerCareer").value;
-  const careerNames = {
-    sistemas: "Ingeniería de Sistemas",
-    industrial: "Ingeniería Industrial",
-    administracion: "Administración de Empresas",
-    comunicacion: "Comunicación Digital"
-  };
-  const semester = document.getElementById("registerSemester").value.trim();
-  const average = document.getElementById("registerAverage").value.trim();
-  const credits = document.getElementById("registerCredits").value.trim();
-  const generatedPassword = `UdeM-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const name     = document.getElementById("registerName").value.trim();
+  const email    = document.getElementById("registerEmail").value.trim();
+  const cedula   = document.getElementById("registerCedula").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
 
-  if(!name || !email || !cedula || !careerKey || !semester || !average || !credits){
+  if(!name || !email || !cedula || !password){
     alert("Completa todos los campos.");
     return;
   }
 
-  // 1. Crear usuario en Auth con contraseña temporal no visible para el estudiante.
+  if(password.length < 8){
+    alert("La contraseña debe tener al menos 8 caracteres.");
+    return;
+  }
+
+  // 1. Crear usuario en Supabase Auth con la contraseña elegida por el estudiante
   const { data, error } = await supabaseClient.auth.signUp({
     email,
-    password: generatedPassword
+    password
   });
 
   if(error){
@@ -682,22 +676,25 @@ async function registerUser(){
     return;
   }
 
-  // 2. Guardar perfil académico
+  // 2. Guardar perfil básico (sin info académica aún — se pedirá cada semestre)
   const { error: profileError } = await supabaseClient
     .from("users")
     .insert([
       {
-        auth_id: data.user.id,
-        nombre: name,
-        correo: email,
-        cedula: cedula,
-        semestre: semester,
-        promedio: average,
-        creditos: credits,
-        role: "student",
-        career: careerNames[careerKey],
-        career_key: careerKey,
-        history: []
+        auth_id:    data.user.id,
+        nombre:     name,
+        correo:     email,
+        cedula:     cedula,
+        role:       "student",
+        // Campos académicos vacíos — se completarán al primer inicio de sesión cada semestre
+        semestre:   null,
+        promedio:   null,
+        creditos:   null,
+        career:     null,
+        career_key: null,
+        history:    [],
+        // Guardamos el semestre en que se llenó por última vez la info académica
+        academic_updated_semester: null
       }
     ]);
 
@@ -707,16 +704,172 @@ async function registerUser(){
     return;
   }
 
-  const { error: activationError } = await supabaseClient.auth.resetPasswordForEmail(email,{
-    redirectTo: window.location.origin + "/reset-password.html"
-  });
+  const content = document.getElementById("modalContent");
+  content.innerHTML = `
+    <div style="text-align:center;padding:40px 20px;">
+      <div class="result-icon success-icon" style="font-size:3rem;margin-bottom:16px;">✔</div>
+      <h2>¡Cuenta creada!</h2>
+      <p style="margin:12px 0 8px;">Revisa tu correo <strong>${email}</strong> para confirmar tu cuenta.</p>
+      <p style="color:#666;font-size:.9rem;margin-bottom:24px;">Al iniciar sesión por primera vez se te pedirá completar tu información académica.</p>
+      <button onclick="closeModal()">Entendido</button>
+    </div>
+  `;
+}
 
-  if(activationError){
-    console.error(activationError);
+/* ─── Modal de actualización académica semestral ─────────────────────────── */
+
+function needsAcademicUpdate(userData){
+  // Si nunca llenó la info académica, siempre se pide
+  if(!userData.career_key || !userData.semestre) return true;
+
+  // Calculamos el semestre académico actual (ene-jun = 1, jul-dic = 2)
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const half  = now.getMonth() < 6 ? 1 : 2;
+  const currentPeriod = `${year}-${half}`;
+
+  return userData.academic_updated_semester !== currentPeriod;
+}
+
+function getCurrentAcademicPeriod(){
+  const now  = new Date();
+  const year = now.getFullYear();
+  const half = now.getMonth() < 6 ? 1 : 2;
+  return `${year}-${half}`;
+}
+
+function openAcademicUpdateModal(userData, onComplete){
+  const modal   = document.getElementById("aiModal");
+  const content = document.getElementById("modalContent");
+
+  modal.style.display = "flex";
+  content.classList.add("register-modal");
+
+  const period = getCurrentAcademicPeriod();
+  const [year, half] = period.split("-");
+  const periodLabel = `${half === "1" ? "Enero–Junio" : "Julio–Diciembre"} ${year}`;
+
+  content.innerHTML = `
+    <div class="register-shell">
+      <aside class="register-aside">
+        <div>
+          <span class="register-kicker">Actualización semestral</span>
+          <h2>Actualiza tu información académica</h2>
+          <p>Para el semestre <strong>${periodLabel}</strong> necesitamos tus datos académicos actualizados. Esto nos permite mostrarte las líneas de énfasis disponibles para tu perfil.</p>
+          <div class="register-steps">
+            <div class="register-step"><span>✔</span>Cuenta verificada</div>
+            <div class="register-step"><span>2</span>Info académica (ahora)</div>
+            <div class="register-step"><span>3</span>Acceso a líneas de énfasis</div>
+          </div>
+        </div>
+        <div class="register-help">
+          Solo se solicita una vez por semestre. Esta información determina a qué líneas puedes inscribirte.
+        </div>
+      </aside>
+
+      <div class="register-form">
+        <div class="register-header">
+          <div>
+            <h3>Información académica</h3>
+            <p>Período: <strong>${periodLabel}</strong></p>
+          </div>
+        </div>
+
+        <div class="register-grid">
+          <div class="form-group full">
+            <label for="updateCareer">Carrera</label>
+            <select id="updateCareer">
+              <option value="sistemas">Ingeniería de Sistemas</option>
+              <option value="industrial">Ingeniería Industrial</option>
+              <option value="administracion">Administración de Empresas</option>
+              <option value="comunicacion">Comunicación Digital</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="updateSemester">Semestre actual</label>
+            <input id="updateSemester" type="number" min="1" max="12"
+              placeholder="Ej: 5" value="${userData.semestre || ""}">
+          </div>
+
+          <div class="form-group">
+            <label for="updateAverage">Promedio acumulado</label>
+            <input id="updateAverage" type="number" min="0" max="5" step="0.1"
+              placeholder="Ej: 4.2" value="${userData.promedio || ""}">
+          </div>
+
+          <div class="form-group full">
+            <label for="updateCredits">Créditos aprobados</label>
+            <input id="updateCredits" type="number" min="0"
+              placeholder="Ej: 84" value="${userData.creditos || ""}">
+          </div>
+        </div>
+
+        <div class="register-actions">
+          <button class="register-primary" type="button"
+            onclick="saveAcademicUpdate()">Guardar y continuar</button>
+        </div>
+
+        <p class="register-legal">Esta información se actualiza semestralmente y es usada exclusivamente para validar tu acceso a las líneas de énfasis.</p>
+      </div>
+    </div>
+  `;
+
+  // Guardamos el callback para llamarlo tras guardar
+  window._academicUpdateCallback = onComplete;
+  window._academicUpdateAuthId   = userData.auth_id;
+}
+
+async function saveAcademicUpdate(){
+  const careerKey = document.getElementById("updateCareer").value;
+  const semester  = document.getElementById("updateSemester").value.trim();
+  const average   = document.getElementById("updateAverage").value.trim();
+  const credits   = document.getElementById("updateCredits").value.trim();
+
+  const careerNames = {
+    sistemas:      "Ingeniería de Sistemas",
+    industrial:    "Ingeniería Industrial",
+    administracion:"Administración de Empresas",
+    comunicacion:  "Comunicación Digital"
+  };
+
+  if(!careerKey || !semester || !average || !credits){
+    alert("Completa todos los campos académicos.");
+    return;
   }
 
-  alert("Registro exitoso. Te enviamos un correo para activar tu acceso y crear tu contraseña.");
+  const period = getCurrentAcademicPeriod();
+
+  const { error } = await supabaseClient
+    .from("users")
+    .update({
+      semestre:   semester,
+      promedio:   average,
+      creditos:   credits,
+      career:     careerNames[careerKey],
+      career_key: careerKey,
+      academic_updated_semester: period
+    })
+    .eq("auth_id", window._academicUpdateAuthId);
+
+  if(error){
+    alert("Error al guardar: " + error.message);
+    console.error(error);
+    return;
+  }
+
   closeModal();
+
+  // Ejecutamos el callback con los datos actualizados
+  if(typeof window._academicUpdateCallback === "function"){
+    window._academicUpdateCallback({
+      careerKey,
+      career: careerNames[careerKey],
+      semester,
+      average,
+      credits
+    });
+  }
 }
 function sendCoordinatorMessage(){
   const email = document.getElementById("contactEmail").value.trim();
