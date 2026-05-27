@@ -57,43 +57,8 @@ function applyAssets() {
   });
 }
 
-function renderEmphasisLines() {
-  const container = document.querySelector("#emphasis-lines");
-  container.innerHTML = emphasisLines.map((line) => `
-    <article class="program-card">
-      <div class="card-icon" aria-hidden="true"><span></span></div>
-      <div>
-        <h3>${line.title}</h3>
-        <p>${line.text}</p>
-        <button class="text-link" type="button">Ver más</button>
-      </div>
-    </article>
-  `).join("");
-}
-
-function renderNews() {
-  const container = document.querySelector("#news-list");
-  container.innerHTML = news.map((item) => `
-    <article class="news-item">
-      <div class="image-slot news-image" aria-label="Imagen de noticia">
-        ${item.image ? `<img src="${item.image}" alt="Imagen de noticia" />` : "<span>Imagen de noticia</span>"}
-      </div>
-      <div class="news-copy">
-        <h3>${item.title}</h3>
-        <p>${item.text}</p>
-        <time>${item.date}</time>
-      </div>
-    </article>
-  `).join("");
-}
-
-function init() {
-  applyAssets();
-  renderEmphasisLines();
-  renderNews();
-}
-
-document.addEventListener("DOMContentLoaded", init);
+// renderEmphasisLines y renderNews eliminadas: los IDs #emphasis-lines y #news-list
+// no existen en el HTML actual. El contenido de la home se maneja con renderHomeCards().
 
 const homeCards = {
   sistemas:[
