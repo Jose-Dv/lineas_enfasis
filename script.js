@@ -703,37 +703,56 @@ async function registerUser(){
     return;
   }
 
+  const btnRegistrar = document.querySelector(".register-primary");
+  if(btnRegistrar) { btnRegistrar.disabled = true; btnRegistrar.textContent = "Creando cuenta..."; }
+
   // 1. Crear usuario en Supabase Auth
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+  // Con "Confirm email" desactivado en Supabase, signUp devuelve
+  // la sesión activa inmediatamente y podemos hacer el INSERT directo.
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
   if(error){
     alert(error.message);
     console.error(error);
+    if(btnRegistrar) { btnRegistrar.disabled = false; btnRegistrar.textContent = "Crear cuenta"; }
     return;
   }
 
-  // 2. Guardar datos del perfil en localStorage.
-  //    El INSERT a la tabla users se hace en handleEmailConfirmation()
-  //    cuando el usuario regresa tras confirmar su correo y Supabase
-  //    establece la sesión activa (necesaria para que RLS lo permita).
-  localStorage.setItem("pendingProfile", JSON.stringify({
-    nombre: name,
-    correo: email,
-    cedula: cedula
-  }));
+  // 2. Insertar perfil básico — la sesión ya está activa, RLS lo permite
+  const { error: profileError } = await supabaseClient
+    .from("users")
+    .insert([{
+      auth_id:                   data.user.id,
+      nombre:                    name,
+      correo:                    email,
+      cedula:                    cedula,
+      role:                      "student",
+      semestre:                  null,
+      promedio:                  null,
+      creditos:                  null,
+      career:                    null,
+      career_key:                null,
+      history:                   [],
+      academic_updated_semester: null
+    }]);
 
-  const content = document.getElementById("modalContent");
-  content.innerHTML = `
+  if(profileError){
+    console.error("Error al crear perfil:", profileError);
+    alert("Cuenta creada pero hubo un error al guardar el perfil: " + profileError.message);
+    return;
+  }
+
+  // 3. Cerrar sesión para que el usuario haga login limpio
+  await supabaseClient.auth.signOut();
+  localStorage.removeItem("pendingProfile");
+
+  const modalContent = document.getElementById("modalContent");
+  modalContent.innerHTML = `
     <div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:3rem;margin-bottom:16px;">\u2709\uFE0F</div>
-      <h2>\u00a1Casi listo!</h2>
-      <p style="margin:12px 0 8px;">Te enviamos un correo a <strong>${email}</strong>.</p>
-      <p style="color:#444;margin-bottom:6px;">Haz clic en el enlace de confirmaci\u00f3n y al volver aqu\u00ed tu cuenta quedar\u00e1 activa autom\u00e1ticamente.</p>
-      <p style="color:#666;font-size:.85rem;margin-bottom:24px;">Luego se te pedir\u00e1 tu informaci\u00f3n acad\u00e9mica para activar las l\u00edneas de \u00e9nfasis.</p>
-      <button onclick="closeModal()">Entendido</button>
+      <div style="font-size:3rem;margin-bottom:16px;">&#10004;</div>
+      <h2>¡Cuenta creada!</h2>
+      <p style="margin:12px 0 20px;">Ya puedes iniciar sesión con tu correo y contraseña.</p>
+      <button onclick="closeModal();showLogin()">Iniciar sesión</button>
     </div>
   `;
 }
