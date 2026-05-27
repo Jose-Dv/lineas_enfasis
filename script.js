@@ -202,6 +202,81 @@ let users = JSON.parse(localStorage.getItem("users")) || {
 
 let currentUser = null;
 
+/* ─── Completar registro tras confirmación de correo ─────────────────────── */
+// Supabase redirige al usuario de vuelta al sitio con tokens en la URL (#access_token=...).
+// onAuthStateChange los detecta y dispara el evento SIGNED_IN con la sesión activa.
+// En ese momento ya tenemos auth_id válido y RLS permite el INSERT.
+
+async function handleEmailConfirmation(){
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if(event === "SIGNED_IN" && session){
+      const pending = localStorage.getItem("pendingProfile");
+      if(!pending) return; // login normal, no registro nuevo
+
+      const profile = JSON.parse(pending);
+
+      // Verificar si ya existe el perfil (evitar doble INSERT)
+      const { data: existing } = await supabaseClient
+        .from("users")
+        .select("id")
+        .eq("auth_id", session.user.id)
+        .maybeSingle();
+
+      if(existing) {
+        // Ya existe — solo limpiamos el localStorage
+        localStorage.removeItem("pendingProfile");
+        return;
+      }
+
+      // Crear el perfil en la tabla users
+      const { error } = await supabaseClient
+        .from("users")
+        .insert([{
+          auth_id:                   session.user.id,
+          nombre:                    profile.nombre,
+          correo:                    profile.correo,
+          cedula:                    profile.cedula,
+          role:                      "student",
+          semestre:                  null,
+          promedio:                  null,
+          creditos:                  null,
+          career:                    null,
+          career_key:                null,
+          history:                   [],
+          academic_updated_semester: null
+        }]);
+
+      if(error){
+        console.error("Error al crear perfil:", error);
+        return;
+      }
+
+      localStorage.removeItem("pendingProfile");
+
+      // Mostrar confirmación al usuario y llevar al login
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("loginPage").style.display = "none";
+
+      const modal   = document.getElementById("aiModal");
+      const mcontent = document.getElementById("modalContent");
+      modal.style.display = "flex";
+      mcontent.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">&#10004;</div>
+          <h2>\u00a1Correo confirmado!</h2>
+          <p style="margin:12px 0 20px;">Tu cuenta est\u00e1 activa. Ahora inicia sesi\u00f3n con tu correo y contrase\u00f1a.</p>
+          <button onclick="closeModal();showLogin()">Iniciar sesi\u00f3n</button>
+        </div>
+      `;
+
+      // Cerrar sesión de Supabase para que el usuario haga login limpio
+      await supabaseClient.auth.signOut();
+    }
+  });
+}
+
+handleEmailConfirmation();
+
 const cardsContainer = document.getElementById("cardsContainer");
 const careerFilter = document.getElementById("careerFilter");
 
@@ -664,7 +739,7 @@ async function registerUser(){
     return;
   }
 
-  // 1. Crear usuario en Supabase Auth con la contraseña elegida por el estudiante
+  // 1. Crear usuario en Supabase Auth
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password
@@ -676,41 +751,24 @@ async function registerUser(){
     return;
   }
 
-  // 2. Guardar perfil básico (sin info académica aún — se pedirá cada semestre)
-  const { error: profileError } = await supabaseClient
-    .from("users")
-    .insert([
-      {
-        auth_id:    data.user.id,
-        nombre:     name,
-        correo:     email,
-        cedula:     cedula,
-        role:       "student",
-        // Campos académicos vacíos — se completarán al primer inicio de sesión cada semestre
-        semestre:   null,
-        promedio:   null,
-        creditos:   null,
-        career:     null,
-        career_key: null,
-        history:    [],
-        // Guardamos el semestre en que se llenó por última vez la info académica
-        academic_updated_semester: null
-      }
-    ]);
-
-  if(profileError){
-    alert(profileError.message);
-    console.error(profileError);
-    return;
-  }
+  // 2. Guardar datos del perfil en localStorage.
+  //    El INSERT a la tabla users se hace en handleEmailConfirmation()
+  //    cuando el usuario regresa tras confirmar su correo y Supabase
+  //    establece la sesión activa (necesaria para que RLS lo permita).
+  localStorage.setItem("pendingProfile", JSON.stringify({
+    nombre: name,
+    correo: email,
+    cedula: cedula
+  }));
 
   const content = document.getElementById("modalContent");
   content.innerHTML = `
     <div style="text-align:center;padding:40px 20px;">
-      <div class="result-icon success-icon" style="font-size:3rem;margin-bottom:16px;">✔</div>
-      <h2>¡Cuenta creada!</h2>
-      <p style="margin:12px 0 8px;">Revisa tu correo <strong>${email}</strong> para confirmar tu cuenta.</p>
-      <p style="color:#666;font-size:.9rem;margin-bottom:24px;">Al iniciar sesión por primera vez se te pedirá completar tu información académica.</p>
+      <div style="font-size:3rem;margin-bottom:16px;">\u2709\uFE0F</div>
+      <h2>\u00a1Casi listo!</h2>
+      <p style="margin:12px 0 8px;">Te enviamos un correo a <strong>${email}</strong>.</p>
+      <p style="color:#444;margin-bottom:6px;">Haz clic en el enlace de confirmaci\u00f3n y al volver aqu\u00ed tu cuenta quedar\u00e1 activa autom\u00e1ticamente.</p>
+      <p style="color:#666;font-size:.85rem;margin-bottom:24px;">Luego se te pedir\u00e1 tu informaci\u00f3n acad\u00e9mica para activar las l\u00edneas de \u00e9nfasis.</p>
       <button onclick="closeModal()">Entendido</button>
     </div>
   `;
