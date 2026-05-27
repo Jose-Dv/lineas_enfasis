@@ -1365,17 +1365,18 @@ footer{
     color: #850B0E;
 }
 .forgot-link{
-    background: transparent;
-    border: none;
+    all: unset;
 
     color: #0B2638;
 
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
+
+    font-family: inherit;
 
     cursor: pointer;
 
-    margin-top: 12px;
+    margin-top: 14px;
 
     transition: .2s ease;
 }
