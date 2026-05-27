@@ -238,14 +238,27 @@ async function login(event){
     return;
   }
 
+  console.log("[login] auth OK, sesión:", authData.session ? "activa" : "NULL");
+  console.log("[login] token:", authData.session?.access_token?.slice(0,20));
+
   // Buscar perfil académico
   console.log("[login] buscando perfil para auth_id:", authData.user.id);
-  const { data: rows, error } = await supabaseClient
-    .from("users")
-    .select("*")
-    .eq("auth_id", authData.user.id)
-    .order("id", { ascending: false })
-    .limit(1);
+
+  let rows, error;
+  try {
+    const result = await supabaseClient
+      .from("users")
+      .select("*")
+      .eq("auth_id", authData.user.id)
+      .order("id", { ascending: false })
+      .limit(1);
+    rows = result.data;
+    error = result.error;
+  } catch(e) {
+    console.error("[login] excepción en query:", e);
+    alert("Error inesperado: " + e.message);
+    return;
+  }
 
   console.log("[login] resultado:", rows, "error:", error);
 
