@@ -820,3 +820,85 @@ function closeModal(){
   modal.style.display="none";
   content.classList.remove("register-modal");
 }
+function openForgotPassword(){
+    const modal = document.getElementById("aiModal");
+    const content = document.getElementById("modalContent");
+
+    modal.style.display = "flex";
+
+    content.innerHTML = `
+        <div class="recover-modal">
+
+            <div class="recover-icon">🔐</div>
+
+            <h2>Recuperar contraseña</h2>
+
+            <p>
+                Ingresa tu correo institucional y te enviaremos
+                un enlace para restablecer tu acceso.
+            </p>
+
+            <input
+                type="email"
+                id="recoverEmail"
+                placeholder="correo@soyudemedellin.edu.co"
+            />
+
+            <button onclick="sendRecoveryEmail()">
+                Enviar enlace
+            </button>
+
+            <span onclick="closeModal()">
+                Cancelar
+            </span>
+
+        </div>
+    `;
+}
+async function sendRecoveryEmail(){
+
+    const email = document
+        .getElementById("recoverEmail")
+        .value
+        .trim();
+
+    if(!email){
+        alert("Ingresa un correo válido");
+        return;
+    }
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        {
+            redirectTo:
+                window.location.origin + "/reset-password.html"
+        }
+    );
+
+    if(error){
+        alert(error.message);
+        console.error(error);
+        return;
+    }
+
+    const content = document.getElementById("modalContent");
+
+    content.innerHTML = `
+        <div class="recover-success">
+
+            <div class="success-icon">✔</div>
+
+            <h2>Correo enviado</h2>
+
+            <p>
+                Revisa tu bandeja de entrada.
+                También verifica spam o correo no deseado.
+            </p>
+
+            <button onclick="closeModal()">
+                Entendido
+            </button>
+
+        </div>
+    `;
+}
