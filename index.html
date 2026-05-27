@@ -441,15 +441,27 @@
 
 <!-- 2. Cliente Supabase -->
 <script>
-  const supabaseUrl = "https://aheliwdjayivxxkijslk.supabase.co";
-  const supabaseKey = "sb_publishable_C3j6BeolYGSj-hOWcADS8A_M1-fS27n";
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      persistSession: false,   // no intenta guardar sesión en storage de terceros
-      autoRefreshToken: false,
-      detectSessionInUrl: false
+
+  const { createClient } = supabase;
+
+  const supabaseUrl =
+    "https://aheliwdjayivxxkijslk.supabase.co";
+
+  const supabaseKey =
+    "sb_publishable_C3j6BeolYGSj-hOWcADS8A_M1-fS27n";
+
+  const supabaseClient = createClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
     }
-  });
+  );
+
 </script>
 
 <!-- 3. Lógica de la app -->
