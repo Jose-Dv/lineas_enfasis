@@ -1297,4 +1297,70 @@ footer{
     box-shadow: 0 0 0 4px rgba(243,217,65,.2);
 }
 
+.reset-body{
+
+    color: #0B2638;
+
+    font-size: 34px;
+}
+
+.reset-card p{
+    text-align: center;
+
+    color: #5f6973;
+
+    line-height: 1.7;
+}
+
+.reset-card input{
+    width: 100%;
+
+    padding: 16px 18px;
+
+    border-radius: 18px;
+
+    border: 1px solid #d7dde5;
+
+    outline: none;
+
+    font-size: 15px;
+}
+
+.reset-card input:focus{
+    border-color: #F3D941;
+
+    box-shadow:
+        0 0 0 4px rgba(243,217,65,.18);
+}
+
+.reset-card button{
+    border: none;
+
+    padding: 16px;
+
+    border-radius: 18px;
+
+    background: #0B2638;
+
+    color: white;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s ease;
+}
+
+.reset-card button:hover{
+    transform: translateY(-2px);
+    background: #163d58;
+}
+
+#resetMessage{
+    text-align: center;
+
+    font-weight: 600;
+
+    color: #850B0E;
 }
