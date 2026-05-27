@@ -275,7 +275,6 @@ async function handleEmailConfirmation(){
   });
 }
 
-handleEmailConfirmation();
 
 const cardsContainer = document.getElementById("cardsContainer");
 const careerFilter = document.getElementById("careerFilter");
