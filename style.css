@@ -1364,3 +1364,23 @@ footer{
 
     color: #850B0E;
 }
+.forgot-link{
+    background: transparent;
+    border: none;
+
+    color: #0B2638;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    margin-top: 12px;
+
+    transition: .2s ease;
+}
+
+.forgot-link:hover{
+    color: #850B0E;
+    transform: scale(1.02);
+}
