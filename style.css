@@ -1367,21 +1367,23 @@ footer{
 .forgot-link{
     all: unset;
 
-    color: #0B2638;
-
-    font-size: 15px;
-    font-weight: 700;
-
     font-family: inherit;
+
+    font-size: 18px;
+    font-weight: 800;
+
+    color: #001F33;
 
     cursor: pointer;
 
-    margin-top: 14px;
+    margin-top: 6px;
+
+    display: inline-block;
 
     transition: .2s ease;
 }
 
 .forgot-link:hover{
     color: #850B0E;
-    transform: scale(1.02);
+    transform: translateY(-1px);
 }
