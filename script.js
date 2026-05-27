@@ -1,3 +1,10 @@
+const { createClient } = supabase;
+
+const supabaseClient = createClient(
+    "https://aheliwdjayivxxkijslk.supabase.co",
+    "sb_publishable_C3j6BeolYGSj-hOWcADS8A_M1-fS27n"
+);
+
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "brandNavy": "#0B2638",
   "brandGold": "#F3D941",
